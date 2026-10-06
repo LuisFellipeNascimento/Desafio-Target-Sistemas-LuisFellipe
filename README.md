@@ -1,6 +1,6 @@
 # Painel Comercial, Estoque e Juros
 
-Aplicação full-stack em Node.js/Express e Angular com painel de comissões, controle de movimentações de estoque e calculadora de multa por atraso. A interface é responsiva e toda em português brasileiro.
+Aplicação full-stack em Node.js/Express e Angular com painel de comissões, controle de movimentações de estoque e calculadora de multa por atraso.
 
 ## Regra de comissão
 
@@ -40,7 +40,7 @@ As vendas de exemplo ficam em `server/vendas.json`; edite esse arquivo para atua
 
 O backend valida os vendedores e valores recebidos e calcula as taxas em centavos para reduzir erros de precisão monetária.
 
-## Controle de estoque
+## Regra de de Controle de estoque
 
 O saldo inicial dos cinco produtos fica em `server/estoque.json`. Pela opção **Estoque**, registre entradas ou saídas com produto, quantidade e descrição. Cada registro recebe um identificador numérico único e informa o saldo final. Os dados do estoque e do histórico são persistidos, respectivamente, em `server/estoque.json` e `server/movimentacoes.json`. Saídas acima do saldo disponível são rejeitadas.
 
@@ -48,7 +48,7 @@ O saldo inicial dos cinco produtos fica em `server/estoque.json`. Pela opção *
 - `GET /api/movimentacoes`: consulta o histórico de movimentações.
 - `POST /api/movimentacoes`: registra entrada ou saída. Corpo JSON: `codigoProduto`, `tipo` (`entrada` ou `saida`), `quantidade` (inteiro positivo) e `descricao`.
 
-## Multa por atraso
+## Regra de Multa por atraso
 
 Na opção **Calculadora de juros**, informe o valor original e a data de vencimento. A multa usa juros simples de 2,5% do valor original por dia corrido de atraso; antes ou no dia do vencimento, o atraso e a multa são zero. O cálculo retorna o valor original, dias em atraso, multa acumulada e total atualizado.
 
