@@ -1,0 +1,14 @@
+{
+  "movimentacoes": [
+    {
+      "id": 1,
+      "codigoProduto": 105,
+      "descricaoProduto": "Marcador de Texto Amarelo",
+      "tipo": "entrada",
+      "descricao": "Teste",
+      "quantidade": 10,
+      "estoqueFinal": 100,
+      "data": "2026-10-06T12:51:58.121Z"
+    }
+  ]
+}

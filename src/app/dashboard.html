@@ -1,0 +1,157 @@
+<main class="app-shell">
+  <aside class="sidebar" aria-label="Navegação principal">
+    <a class="brand" href="#inicio" aria-label="Vértice, início">
+      <span class="brand-mark"><span></span><span></span><span></span></span>
+      <span>vértice<span class="brand-dot">.</span></span>
+    </a>
+
+    <div class="workspace-label">WORKSPACE</div>
+    <button class="workspace-switcher" type="button">
+      <span class="workspace-icon">V</span>
+      <span class="workspace-copy"><strong>Vértice Studio</strong><small>Plano profissional</small></span>
+      <span class="chevron">⌄</span>
+    </button>
+
+    <div class="nav-label">MENU PRINCIPAL</div>
+    <nav class="main-nav">
+      <button type="button" class="nav-item" [class.active]="page() === 'comissoes'" (click)="setPage('comissoes')"><span class="nav-icon">◉</span>Comissões</button>
+      <button type="button" class="nav-item" [class.active]="page() === 'estoque'" (click)="setPage('estoque')"><span class="nav-icon">▦</span>Estoque</button>
+      <button type="button" class="nav-item" [class.active]="page() === 'juros'" (click)="setPage('juros')"><span class="nav-icon">％</span>Calculadora de juros</button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="help-card">
+        <div class="help-icon">✳</div>
+        <strong>Precisa de ajuda?</strong>
+        <p>Estamos aqui para ajudar você a crescer.</p>
+        <a href="mailto:suporte&#64;vertice.com">Fale com suporte <span>↗</span></a>
+      </div>
+      <button class="profile-button" type="button">
+        <span class="avatar avatar-admin">LF</span>
+        <span class="profile-copy"><strong>Luis Fellipe</strong><small>Administrador</small></span>
+        <span class="chevron">···</span>
+      </button>
+    </div>
+  </aside>
+
+  <section class="main-area" id="inicio">
+    <header class="topbar">
+      <div class="breadcrumbs"><span>Workspace</span><span class="crumb-separator">/</span><strong>{{ pageTitle() }}</strong></div>
+      <div class="topbar-actions">
+        <span class="period-pill"><span class="calendar-icon">▦</span> Período atual <span class="chevron">⌄</span></span>
+        <button class="icon-button notification-button" type="button" aria-label="Notificações">♧<i></i></button>
+        <span class="avatar avatar-admin top-avatar">LF</span>
+      </div>
+    </header>
+
+    @if (page() === 'estoque') {
+      <div class="page-content inventory-page">
+        <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> CONTROLE DE DEPÓSITO</div><h1>Estoque</h1><p class="page-subtitle">Registre entradas e saídas e acompanhe o saldo atualizado.</p></div></div>
+        @if (inventoryError()) { <div class="error-banner" role="alert"><span>!</span><div><strong>Não foi possível concluir</strong><small>{{ inventoryError() }}</small></div><button type="button" (click)="loadInventory()">Atualizar</button></div> }
+        <section class="inventory-layout">
+          <article class="operation-card"><div class="operation-card-title"><span class="metric-icon commission-icon">↕</span><div><h2>Nova movimentação</h2><p>Preencha os dados para atualizar o estoque.</p></div></div>
+            <form class="movement-form" (submit)="submitMovement($event)">
+              <label>Produto<select required [value]="movementProduct()" (change)="setMovementProduct($event)"><option value="">Selecione um produto</option>@for (product of products(); track product.codigoProduto) { <option [value]="product.codigoProduto">{{ product.codigoProduto }} — {{ product.descricaoProduto }} ({{ product.estoque }} un.)</option> }</select></label>
+              <div class="form-row"><label>Tipo de movimentação<select [value]="movementType()" (change)="setMovementType($event)"><option value="entrada">Entrada</option><option value="saida">Saída</option></select></label><label>Quantidade<input type="number" min="1" step="1" required [value]="movementQuantity()" (input)="setMovementQuantity($event)"></label></div>
+              <label>Descrição da movimentação<input type="text" maxlength="120" required placeholder="Ex.: Reposição do fornecedor" [value]="movementDescription()" (input)="setMovementDescription($event)"></label>
+              <button class="primary-button" type="submit" [disabled]="savingMovement()">{{ savingMovement() ? 'Registrando...' : 'Registrar movimentação' }} <span>→</span></button>
+            </form>
+          </article>
+          <article class="inventory-list-card"><div class="section-heading"><div><h2>Posição do estoque</h2><p>{{ products().length }} produtos cadastrados</p></div><button class="subtle-button" type="button" (click)="loadInventory()">↻ Atualizar</button></div>
+            <div class="table-scroll"><table class="data-table"><thead><tr><th>PRODUTO</th><th>CÓDIGO</th><th>DISPONÍVEL</th></tr></thead><tbody>@for (product of products(); track product.codigoProduto) { <tr><td><strong>{{ product.descricaoProduto }}</strong></td><td>#{{ product.codigoProduto }}</td><td><span class="stock-badge">{{ product.estoque }} un.</span></td></tr> } @empty { <tr><td colspan="3" class="table-empty">Carregando produtos...</td></tr> }</tbody></table></div>
+          </article>
+        </section>
+        <section class="history-card"><div class="section-heading"><div><h2>Movimentações recentes</h2><p>Histórico com identificador e saldo após cada operação.</p></div><span class="history-count">{{ movements().length }} registros</span></div>
+          <div class="table-scroll"><table class="data-table"><thead><tr><th>ID</th><th>DATA</th><th>PRODUTO</th><th>TIPO / DESCRIÇÃO</th><th>QUANTIDADE</th><th>ESTOQUE FINAL</th></tr></thead><tbody>@for (movement of recentMovements(); track movement.id) { <tr><td><span class="movement-id">#{{ movement.id }}</span></td><td>{{ movement.data | date:'dd/MM/yyyy HH:mm' }}</td><td><strong>{{ movement.descricaoProduto }}</strong></td><td><span class="movement-type" [class.outgoing]="movement.tipo === 'saida'">{{ movement.tipo === 'entrada' ? 'Entrada' : 'Saída' }}</span><small class="movement-description">{{ movement.descricao }}</small></td><td>{{ movement.tipo === 'entrada' ? '+' : '−' }}{{ movement.quantidade }}</td><td><strong>{{ movement.estoqueFinal }} un.</strong></td></tr> } @empty { <tr><td colspan="6" class="table-empty">Nenhuma movimentação registrada ainda.</td></tr> }</tbody></table></div>
+        </section>
+        @if (lastMovement()) { <div class="success-banner" role="status"><span>✓</span>Movimentação #{{ lastMovement()!.id }} registrada. Estoque final de {{ lastMovement()!.descricaoProduto }}: <strong>{{ lastMovement()!.estoqueFinal }} unidades.</strong></div> }
+      </div>
+    } @else if (page() === 'juros') {
+      <div class="page-content interest-page"><div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> FERRAMENTAS FINANCEIRAS</div><h1>Calculadora de juros</h1><p class="page-subtitle">Calcule a multa por atraso a partir do valor e do vencimento.</p></div></div>
+        <section class="interest-layout"><article class="operation-card interest-form-card"><div class="operation-card-title"><span class="metric-icon value-icon">％</span><div><h2>Calcular atraso</h2><p>A multa é calculada por dia após o vencimento.</p></div></div>
+          <form class="movement-form" (submit)="calculateLateFee($event)"><label>Valor original (R$)<input type="number" min="0.01" step="0.01" required placeholder="Ex.: 250,00" [value]="interestAmount()" (input)="setInterestAmount($event)"></label><label>Data de vencimento<input type="date" required [value]="dueDate()" (input)="setDueDate($event)"></label><div class="fee-note"><span>i</span><p><strong>Taxa diária: 2,5%</strong><br>Juros simples, calculados sobre o valor original por dia de atraso.</p></div><button class="primary-button" type="submit" [disabled]="calculatingFee()">{{ calculatingFee() ? 'Calculando...' : 'Calcular valor atualizado' }} <span>→</span></button></form>
+        </article>
+        <article class="interest-result-card" [class.result-ready]="feeResult()"><div class="result-decoration">％</div>@if (feeResult(); as result) { <div class="result-content"><span class="result-label">{{ result.diasAtraso > 0 ? 'VALOR ATUALIZADO' : 'SEM ATRASO' }}</span><div class="result-total">{{ currency(result.valorTotal) }}</div><p>{{ result.diasAtraso > 0 ? 'Total com multa aplicada' : 'O vencimento ainda não passou.' }}</p><div class="result-breakdown"><span>Valor original</span><strong>{{ currency(result.valorOriginal) }}</strong><span>Multa acumulada ({{ result.diasAtraso }} dias)</span><strong>{{ currency(result.valorJuros) }}</strong><span>Taxa aplicada</span><strong>{{ result.taxaDiaria }}% ao dia</strong></div><div class="result-footnote">Cálculo até {{ todayLabel() }} · Juros simples</div></div> } @else { <div class="result-placeholder"><span class="placeholder-icon">％</span><h2>Seu cálculo aparecerá aqui</h2><p>Informe o valor e a data de vencimento para visualizar a multa e o total atualizado.</p></div> }</article></section>
+        @if (interestError()) { <div class="error-banner" role="alert"><span>!</span><div><strong>Não foi possível calcular</strong><small>{{ interestError() }}</small></div></div> }
+      </div>
+    } @else {
+    <div class="page-content" id="comissoes">
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow"><span class="eyebrow-dot"></span> DESEMPENHO COMERCIAL</div>
+          <h1>Comissões</h1>
+          <p class="page-subtitle">Acompanhe os resultados e as comissões da sua equipe.</p>
+        </div>
+        <button class="export-button" type="button" (click)="exportCsv()" [disabled]="!report()">
+          <span>↓</span> Exportar relatório
+        </button>
+      </div>
+
+      @if (error()) {
+        <div class="error-banner" role="alert"><span>!</span><div><strong>Não foi possível carregar os dados</strong><small>{{ error() }} Verifique se a API está em execução.</small></div><button type="button" (click)="loadReport()">Tentar novamente</button></div>
+      }
+
+      <section class="summary-grid" aria-label="Resumo de resultados">
+        <article class="summary-card commission-card">
+          <div class="card-topline"><span class="card-label">COMISSÃO TOTAL</span><span class="metric-icon commission-icon">✳</span></div>
+          <div class="metric-value">{{ currency(totalCommission()) }}</div>
+          <div class="metric-foot"><span class="trend-pill">Calculada</span><span>com base em cada venda</span></div>
+        </article>
+        <article class="summary-card">
+          <div class="card-topline"><span class="card-label">VENDAS REALIZADAS</span><span class="metric-icon sales-icon">↗</span></div>
+          <div class="metric-value">{{ quantitySales() }}<span class="metric-unit">vendas</span></div>
+          <div class="metric-foot"><span class="trend-pill">Importadas</span><span>no arquivo de vendas</span></div>
+        </article>
+        <article class="summary-card">
+          <div class="card-topline"><span class="card-label">VALOR TOTAL VENDIDO</span><span class="metric-icon value-icon">◈</span></div>
+          <div class="metric-value">{{ currency(totalSold()) }}</div>
+          <div class="metric-foot"><span class="trend-pill">Consolidado</span><span>de todas as vendas</span></div>
+        </article>
+      </section>
+
+      <section class="rules-strip" aria-label="Regras de comissão">
+        <span class="rules-symbol">i</span><strong>Regras de comissão</strong>
+        <span class="rule-separator"></span><span>Até <b>R$ 99,99</b><em>Sem comissão</em></span>
+        <span class="rule-separator"></span><span>De <b>R$ 100 a R$ 499,99</b><em>1% de comissão</em></span>
+        <span class="rule-separator"></span><span>A partir de <b>R$ 500</b><em>5% de comissão</em></span>
+      </section>
+
+      <section class="team-section" id="equipe">
+        <div class="section-heading">
+          <div><h2>Desempenho por vendedor</h2><p>Confira os resultados individuais da equipe.</p></div>
+          <label class="search-box"><span>⌕</span><input type="search" placeholder="Buscar vendedor..." aria-label="Buscar vendedor" [value]="search()" (input)="onSearch($event)"></label>
+        </div>
+
+        @if (loading()) {
+          <div class="loading-state"><span class="spinner"></span>Carregando resultados...</div>
+        } @else if (report()) {
+          <div class="seller-grid">
+            @for (seller of filteredSellers(); track seller.vendedor; let index = $index) {
+              <article class="seller-card" [class.featured-seller]="index === 0">
+                <div class="seller-card-header">
+                  <div class="seller-identity"><span class="avatar" [class]="'avatar seller-avatar avatar-' + (index % 4)">{{ initials(seller.vendedor) }}</span><div><h3>{{ seller.vendedor }}</h3><span class="seller-role">Consultor de vendas</span></div></div>
+                  @if (index === 0) { <span class="leader-badge">★ Destaque</span> }
+                </div>
+                <div class="seller-commission-label">COMISSÃO ACUMULADA</div>
+                <div class="seller-commission">{{ currency(seller.totalComissao) }}</div>
+                <div class="seller-progress"><span [style.width.%]="progress(seller.totalComissao)"></span></div>
+                <div class="seller-stats"><span><small>Vendido</small><strong>{{ currency(seller.totalVendido) }}</strong></span><span><small>Vendas</small><strong>{{ seller.quantidadeVendas }}</strong></span><span><small>Comissão média</small><strong>{{ currency(averageCommission(seller)) }}</strong></span></div>
+                <button class="details-button" type="button" (click)="toggleSeller(seller.vendedor)" [attr.aria-expanded]="expandedSeller() === seller.vendedor">{{ expandedSeller() === seller.vendedor ? 'Ocultar vendas' : 'Ver vendas' }}<span>{{ expandedSeller() === seller.vendedor ? '⌃' : '⌄' }}</span></button>
+                @if (expandedSeller() === seller.vendedor) {
+                  <div class="sales-detail"><div class="detail-heading"><span>VALOR DA VENDA</span><span>TAXA</span><span>COMISSÃO</span></div>@for (sale of seller.vendas; track $index) {<div class="detail-row"><strong>{{ currency(sale.valor) }}</strong><span class="rate-badge" [class.no-rate]="sale.percentual === 0">{{ sale.percentual }}%</span><strong>{{ currency(sale.comissao) }}</strong></div>}</div>
+                }
+              </article>
+            } @empty {
+              <div class="empty-state">Nenhum vendedor encontrado para “{{ search() }}”.</div>
+            }
+          </div>
+        }
+      </section>
+
+      @if (report()) {
+        <footer class="page-footer"><span>Exibindo {{ filteredSellers().length }} de {{ report()!.quantidadeVendedores }} vendedores</span><span>Valores calculados com base nas vendas cadastradas <b>•</b> Atualizado agora</span></footer>
+      }
+    </div>
+    }
+  </section>
+</main>
